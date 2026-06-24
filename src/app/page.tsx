@@ -56,7 +56,7 @@ export default function AuraEduHomePage() {
       {/* CENTRALIZED ORCHESTRATION TERMINAL FRAME */}
       <div style={{ maxWidth: '1200px', width: '100%', backgroundColor: '#070a13', border: '3px solid #00f0ff', boxShadow: '0 0 25px rgba(0, 240, 255, 0.15)', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
         
-        {/* TERMINAL HEADER HEADER BAR */}
+        {/* TERMINAL HEADER BAR */}
         <div style={{ backgroundColor: '#0b1329', padding: '0.75rem 1.5rem', borderBottom: '2px solid #00f0ff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: '6px' }}>
             <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5555', display: 'inline-block' }}></span>
