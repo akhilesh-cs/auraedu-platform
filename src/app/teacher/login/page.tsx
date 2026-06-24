@@ -1,33 +1,61 @@
-"use client";
+\"use client";
 
 import React, { useState } from 'react';
-import { createClient } from "@/utils/supabase";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase";
 
-export default function TeacherLoginPage() {
+export default function OTPLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [otpToken, setOtpToken] = useState("");
+  const [step, setStep] = useState<1 | 2>(1); // Step 1: Send OTP, Step 2: Verify OTP
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const supabase = createClient();
+
+  // Send single-use OTP key to email
+  const handleRequestOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage("");
 
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false } // Ensures non-registered visitors can't bypass registration
+      });
 
-      if (error) {
-        setMessage(`ERROR_LOG: [AUTH_ERR] -> ${error.message}`);
-      } else {
-        setMessage("AUTHENTICATION GRANTED: Directing to Faculty Terminal...");
-        router.push("/faculty/dashboard");
-      }
+      if (error) throw error;
+      setStep(2);
+      setMessage("TOKEN SENT: Check your email inbox for the system authentication key.");
     } catch (err: any) {
-      setMessage(`ERROR_LOG: ${err.message || "System authentication mismatch."}`);
+      setMessage(`ERROR_LOG: [OTP_GEN_FAIL] -> ${err.message || "Email identity non-existent."}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Verify token and grant entry matrix
+  const handleVerifyOTP = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: otpToken,
+        type: 'email'
+      });
+
+      if (error) throw error;
+
+      setMessage("ACCESS GRANTED: Opening portal core telemetry...");
+      // Check roles or route immediately
+      router.push("/student/dashboard");
+    } catch (err: any) {
+      setMessage(`ERROR_LOG: [TOKEN_INVALID] -> ${err.message || "Invalid or expired key."}`);
     } finally {
       setLoading(false);
     }
@@ -35,33 +63,36 @@ export default function TeacherLoginPage() {
 
   return (
     <div style={{ backgroundColor: '#020617', minHeight: '100vh', padding: '2rem 1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', fontFamily: 'monospace' }}>
-      <div style={{ maxWidth: '450px', width: '100%', backgroundColor: '#070a13', border: '3px solid #bd93f9', boxShadow: '0 0 25px rgba(189, 147, 249, 0.15)', borderRadius: '12px', overflow: 'hidden' }}>
-        
-        <div style={{ backgroundColor: '#0b1329', padding: '0.75rem 1.5rem', borderBottom: '2px solid #bd93f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ color: '#bd93f9', fontSize: '0.8rem', fontWeight: 'bold', letterSpacing: '2px' }}>AURAEDU // FACULTY_AUTH_NODE</div>
-          <div style={{ color: '#475569', fontSize: '0.75rem' }}>SECURE</div>
+      <div style={{ maxWidth: '500px', width: '100%', backgroundColor: '#070a13', border: '3px solid #00f0ff', borderRadius: '12px', overflow: 'hidden' }}>
+        <div style={{ backgroundColor: '#0b1329', padding: '0.75rem 1.5rem', borderBottom: '2px solid #00f0ff', color: '#00f0ff', fontWeight: 'bold', fontSize: '0.8rem' }}>
+          AURAEDU // SECURE_OTP_TERMINAL
         </div>
 
         <div style={{ padding: '2rem' }}>
-          <form onSubmit={handleLogin} style={{ backgroundColor: '#090d16', border: '1px solid #334155', padding: '1.5rem', borderRadius: '6px' }}>
-            <h2 style={{ fontSize: '1.1rem', color: '#bd93f9', margin: '0 0 1.25rem 0', fontWeight: 'bold' }}>// STAFF IDENTITY VERIFICATION</h2>
-            
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ color: '#94a3b8', fontSize: '0.75rem', display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>FACULTY EMAIL</label>
-              <input type="email" placeholder="faculty@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', padding: '0.75rem', color: '#ffffff', fontFamily: 'monospace', borderRadius: '4px', outline: 'none' }} required />
-            </div>
-            
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ color: '#94a3b8', fontSize: '0.75rem', display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>ACCESS DECRYPTION KEY</label>
-              <input type="password" placeholder="••••••••••••" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', padding: '0.75rem', color: '#ffffff', fontFamily: 'monospace', borderRadius: '4px', outline: 'none' }} required />
-            </div>
+          {step === 1 ? (
+            <form onSubmit={handleRequestOTP}>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ color: '#94a3b8', fontSize: '0.75rem', display: 'block', marginBottom: '0.5rem' }}>ENTER REGISTERED EMAIL</label>
+                <input type="email" placeholder="identity@domain.com" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', padding: '0.75rem', color: '#ffffff', fontFamily: 'monospace', borderRadius: '4px' }} required />
+              </div>
+              <button type="submit" disabled={loading} style={{ width: '100%', backgroundColor: '#00f0ff', color: '#020617', padding: '0.75rem', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
+                {loading ? "GENERATING TOKEN..." : "DISPATCH SYSTEM OTP"}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerifyOTP}>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ color: '#94a3b8', fontSize: '0.75rem', display: 'block', marginBottom: '0.5rem' }}>ENTER SECURE 6-DIGIT OTP TOKEN</label>
+                <input type="text" placeholder="123456" value={otpToken} onChange={(e) => setOtpToken(e.target.value)} style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #334155', padding: '0.75rem', color: '#ffffff', fontFamily: 'monospace', borderRadius: '4px', letterSpacing: '4px', textAlign: 'center' }} required />
+              </div>
+              <button type="submit" disabled={loading} style={{ width: '100%', backgroundColor: '#50fa7b', color: '#020617', padding: '0.75rem', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>
+                {loading ? "VERIFYING MATRIX..." : "AUTHORIZE PROFILE GATEWAYS"}
+              </button>
+              <button type="button" onClick={() => setStep(1)} style={{ width: '100%', marginTop: '0.5rem', background: 'none', color: '#64748b', border: 'none', fontSize: '0.75rem', textDecoration: 'underline', cursor: 'pointer' }}>Change Email Parameter</button>
+            </form>
+          )}
 
-            <button type="submit" disabled={loading} style={{ width: '100%', backgroundColor: '#bd93f9', color: '#020617', padding: '0.8rem', border: 'none', borderRadius: '4px', fontFamily: 'monospace', fontWeight: 'bold', fontSize: '0.95rem', cursor: loading ? 'not-allowed' : 'pointer' }}>
-              {loading ? "DECRYPTING MATRIX..." : "AUTHORIZE HUB ACCESS"}
-            </button>
-
-            {message && <div style={{ marginTop: '1.25rem', border: '1px dashed #334155', padding: '0.75rem', borderRadius: '4px', fontSize: '0.8rem', color: '#e2e8f0', textAlign: 'center', backgroundColor: '#0f172a' }}>{message}</div>}
-          </form>
+          {message && <div style={{ marginTop: '1.25rem', border: '1px dashed #334155', padding: '0.75rem', color: '#ffffff', fontSize: '0.8rem', backgroundColor: '#0f172a', textAlign: 'center' }}>{message}</div>}
         </div>
       </div>
     </div>
