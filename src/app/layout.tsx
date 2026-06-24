@@ -12,7 +12,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body style={{ margin: 0, backgroundColor: '#020617', color: '#f1f5f9', fontFamily: 'monospace', boxSizing: 'border-box' }}>
+      <body 
+  suppressHydrationWarning // 👈 ADD THIS RIGHT HERE
+  style={{ margin: 0, backgroundColor: '#020617', color: '#f1f5f9', fontFamily: 'monospace', boxSizing: 'border-box' }}
+>
         
         {/* GLOBAL BRAND HEADER (Appears on every page) */}
         <header style={{ borderBottom: '1px solid #1e293b', backgroundColor: '#090f1f', padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
