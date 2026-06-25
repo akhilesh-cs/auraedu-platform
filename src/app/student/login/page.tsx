@@ -29,7 +29,7 @@ export default function StudentOTPLoginPage() {
       setMessage("TOKEN SENT: Check your email inbox for the system authentication key.");
     } catch (err: any) {
       setMessage(`ERROR_LOG: [OTP_GEN_FAIL] -> ${err.message || "Email identity non-existent."}`);
-    } finaly {
+    } finally {
       setLoading(false);
     }
   };
