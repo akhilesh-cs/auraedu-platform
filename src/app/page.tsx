@@ -6,12 +6,11 @@ import { createClient } from "@/utils/supabase";
 
 export default function AuraEduHomePage() {
   const router = useRouter();
-  const [visitorCount, setVisitorCount] = useState<number>(14230);
-  const [activeDemos, setActiveDemos] = useState<number>(42);
+  const [visitorCount, setVisitorCount] = useState<number>(14236);
+  const [activeDemos, setActiveDemos] = useState<number>(41);
   const [globalTeachers, setGlobalTeachers] = useState<number>(186);
 
   useEffect(() => {
-    // SYSTEM ACCESS CHECK: Automatically routes active sessions straight to their dashboards
     const checkUserSession = async () => {
       try {
         const supabase = createClient();
@@ -53,7 +52,7 @@ export default function AuraEduHomePage() {
       
       <div style={{ maxWidth: '1200px', width: '100%', backgroundColor: '#070a13', border: '3px solid #00f0ff', boxShadow: '0 0 25px rgba(0, 240, 255, 0.15)', borderRadius: '12px', overflow: 'hidden', position: 'relative' }}>
         
-        {/* HEADER */}
+        {/* HEADER BAR */}
         <div style={{ backgroundColor: '#0b1329', padding: '0.75rem 1.5rem', borderBottom: '2px solid #00f0ff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: '6px' }}>
             <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ff5555', display: 'inline-block' }}></span>
@@ -64,22 +63,22 @@ export default function AuraEduHomePage() {
           <div style={{ color: '#475569', fontSize: '0.75rem' }}>SYS_STATUS: ACTIVE</div>
         </div>
 
-        {/* COUNTERS */}
+        {/* METRICS ENGINE */}
         <div style={{ backgroundColor: '#0f172a', borderBottom: '1px dashed #334155', padding: '1rem 2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', textAlign: 'center' }}>
           <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>
             🌐 PLATFORM ENGINE VISITS: <span style={{ color: '#00f0ff', fontWeight: 'bold' }}>{visitorCount.toLocaleString()}</span>
           </div>
-          <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>
-            📡 DEMO CLASSES COMPLETED: <span style={{ color: '#39ff14', fontWeight: 'bold' }}>{activeDemos}</span>
+          <div style={{ fontSize: '0.85rem', color: '#39ff14', fontWeight: 'bold' }}>
+            📡 DEMO CLASSES COMPLETED: <span>{activeDemos}</span>
           </div>
-          <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>
-            🎓 ACTIVE ASIA FACULTY: <span style={{ color: '#bd93f9', fontWeight: 'bold' }}>{globalTeachers}</span>
+          <div style={{ fontSize: '0.85rem', color: '#bd93f9', fontWeight: 'bold' }}>
+            🎓 ACTIVE ASIA FACULTY: <span>{globalTeachers}</span>
           </div>
         </div>
 
         <div style={{ padding: '2.5rem 2rem' }}>
           
-          {/* TITLE HERO */}
+          {/* HERO TITLE */}
           <section style={{ textAlign: 'center', marginBottom: '3rem', padding: '2rem', border: '1px solid #1e293b', borderRadius: '6px', backgroundColor: '#090d16' }}>
             <h1 style={{ fontSize: '2.2rem', color: '#ffffff', margin: '0 0 1rem 0', fontWeight: '800', textTransform: 'uppercase' }}>
               Elite Online Tutoring & Cross-Border Educational Delivery
@@ -89,10 +88,10 @@ export default function AuraEduHomePage() {
             </p>
           </section>
 
-          {/* ACCESS HUB ACCELERATOR */}
+          {/* SPLIT HUB LINKS */}
           <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
             
-            {/* STUDENT */}
+            {/* STUDENT TERMINAL */}
             <div style={{ backgroundColor: '#090d16', border: '1px solid #00f0ff', borderRadius: '6px', padding: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#00f0ff', marginBottom: '0.75rem' }}>📥 Student Access Terminal</div>
@@ -106,7 +105,7 @@ export default function AuraEduHomePage() {
               </div>
             </div>
 
-            {/* FACULTY */}
+            {/* FACULTY TERMINAL */}
             <div style={{ backgroundColor: '#090d16', border: '1px solid #bd93f9', borderRadius: '6px', padding: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#bd93f9', marginBottom: '0.75rem' }}>🎓 Faculty Control Node</div>

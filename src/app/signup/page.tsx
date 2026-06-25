@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { createClient } from "@/utils/supabase";
 
 function RegistrationFormTerminal() {
   const searchParams = useSearchParams();
@@ -26,41 +25,65 @@ function RegistrationFormTerminal() {
     setLoading(true);
     setMessage("");
 
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      setMessage("ERROR_LOG: [SYS_FAULT] -> Environment configuration keys missing or inaccessible on the client layer.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const supabase = createClient();
-      
-      // 1. Initialize passwordless signup track
-      const { data, error: authError } = await supabase.auth.signUp({
-        email,
-        password: Math.random().toString(36) + Math.random().toString(36),
-        options: {
+      const response = await fetch(`${supabaseUrl}/auth/v1/otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${supabaseAnonKey}`
+        },
+        body: JSON.stringify({
+          email: email,
+          create_user: true,
           data: {
             full_name: fullName,
-            phone_number: phone,
-            role_assignment: role,
-            subjects_matrix: subjects
-          },
-        },
+            phone_number: phone, 
+            portal_role: role,          // Aligned with Postgres table column keys
+            selected_subjects: subjects // Aligned with Postgres table column keys
+          }
+        })
       });
 
-      if (authError) throw authError;
+      const responseData = await response.json().catch(() => ({}));
 
-      // 2. Synchronize to public profile tables
-      if (data?.user) {
-        await supabase.from('profiles').insert([
-          {
-            id: data.user.id,
-            full_name: fullName,
-            phone_number: phone,
-            portal_role: role,
-            selected_subjects: subjects
-          }
-        ]);
+      if (!response.ok) {
+        throw new Error(responseData.error_description || responseData.msg || responseData.message || `HTTP Server Status ${response.status}`);
       }
 
-      setMessage(`SUCCESS: Registration payload mapped. Secure activation OTP matrix dispatched to ${email}. Check mailbox.`);
+      setMessage(`SUCCESS: Secure onboarding telemetry dispatched. Check your mailbox at ${email} for your instant login access key!`);
     } catch (err: any) {
-      setMessage(`ERROR_LOG: [SYS_FAULT] -> ${err.message || JSON.stringify(err)}`);
+      console.error("Full System Exception Log:", err);
+      
+      let detailedError = "";
+      if (err) {
+        const propertyNames = Object.getOwnPropertyNames(err);
+        if (propertyNames.length > 0) {
+          detailedError = propertyNames.map(prop => `${prop}: ${err[prop]}`).join(" | ");
+        } else {
+          detailedError = String(err);
+        }
+      }
+
+      // Intercept duplicate identity mappings and protect database integrity
+      if (
+        detailedError.toLowerCase().includes("database error saving new user") || 
+        detailedError.toLowerCase().includes("email_exists") ||
+        detailedError.toLowerCase().includes("422")
+      ) {
+        setMessage(`TERMINAL_WARN: Access Denied. An active profile is already mapped to this email string. Please proceed to the Login Terminal.`);
+      } else {
+        setMessage(`ERROR_LOG: [SYS_FAULT] -> ${detailedError || "Unknown Telemetry Error"}`);
+      }
     } finally {
       setLoading(false);
     }
@@ -79,6 +102,7 @@ function RegistrationFormTerminal() {
 
         <div style={{ padding: '2rem' }}>
           <form onSubmit={handleRegister} style={{ backgroundColor: '#090d16', border: '1px solid #334155', padding: '1.5rem', borderRadius: '6px' }}>
+            
             <h2 style={{ fontSize: '1.1rem', color: currentThemeColor, margin: '0 0 1.25rem 0', fontWeight: 'bold' }}>// INITIALIZE SYSTEM ONBOARDING</h2>
             
             <div style={{ marginBottom: '1rem' }}>
@@ -113,7 +137,7 @@ function RegistrationFormTerminal() {
               {loading ? "TRANSMITTING TELEMETRY..." : "REGISTER CORE NODE"}
             </button>
 
-            {message && <div style={{ marginTop: '1.25rem', border: '1px dashed #334155', padding: '0.75rem', borderRadius: '4px', fontSize: '0.8rem', color: '#e2e8f0', textAlign: 'center', backgroundColor: '#0f172a' }}>{message}</div>}
+            {message && <div style={{ marginTop: '1.25rem', border: '1px dashed #334155', padding: '0.75rem', borderRadius: '4px', fontSize: '0.8rem', color: '#e2e8f0', textAlign: 'center', backgroundColor: '#0f172a', wordBreak: 'break-all' }}>{message}</div>}
           </form>
         </div>
       </div>
